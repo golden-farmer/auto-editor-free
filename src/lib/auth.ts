@@ -1,7 +1,7 @@
 import { createClient as createServerSupabaseClient } from "@/lib/supabase/server";
 
 export type AppRole = "USER" | "ADMIN";
-export type AppUserStatus = "PENDING" | "APPROVED" | "REJECTED";
+export type AppUserStatus = "PENDING" | "APPROVED" | "REJECTED" | "EXPIRED";
 export type AppPlanType = "free" | "paid";
 export type AppAccess = "site1" | "site2" | "both";
 
@@ -39,30 +39,6 @@ const devProfile: AppProfile = {
   created_at: new Date(0).toISOString(),
   updated_at: new Date(0).toISOString(),
 };
-
-const NEW_AUTH_USER_WINDOW_MS = 10 * 60 * 1000;
-
-function isNewAuthUser(createdAt?: string) {
-  if (!createdAt) {
-    return false;
-  }
-
-  const createdAtTime = new Date(createdAt).getTime();
-
-  if (Number.isNaN(createdAtTime)) {
-    return false;
-  }
-
-  return Date.now() - createdAtTime < NEW_AUTH_USER_WINDOW_MS;
-}
-
-function shouldNormalizeSite2Profile(profile: AppProfile, userCreatedAt?: string) {
-  return (
-    isNewAuthUser(userCreatedAt) &&
-    profile.plan_type === "paid" &&
-    profile.app_access === "site1"
-  );
-}
 
 export function hasSite2Access(profile: AppProfile | null) {
   return profile?.app_access === "site2" || profile?.app_access === "both";
@@ -105,21 +81,6 @@ export async function getAuthenticatedContext() {
       .single<AppProfile>();
 
     profile = createdProfile;
-  }
-
-  if (profile && shouldNormalizeSite2Profile(profile, user.created_at)) {
-    const { data: normalizedProfile } = await supabase
-      .from("users")
-      .update({
-        plan_type: "free",
-        app_access: "site2",
-        upgraded_at: null,
-      })
-      .eq("id", user.id)
-      .select("*")
-      .single<AppProfile>();
-
-    profile = normalizedProfile ?? profile;
   }
 
   return {
