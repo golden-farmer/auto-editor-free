@@ -3,13 +3,12 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
-  Image,
+  Image as ImageIcon,
   LayoutTemplate,
   Calculator,
   Settings,
   MessageSquare,
   Archive,
-  Key,
 } from "lucide-react";
 import { useAuth } from "@/components/providers/AuthProvider";
 
@@ -50,10 +49,10 @@ export default function DashboardPage() {
             href="https://gemini.google.com/gem/1IWR0Irn4jzmH3COBgncT93beU863blPb?usp=sharing"
             target="_blank"
             rel="noopener noreferrer"
-            className="group block rounded-2xl border border-gray-200 bg-white p-8 shadow-sm transition-all hover:border-blue-500 hover:shadow-md"
+            className="hidden group rounded-2xl border border-gray-200 bg-white p-8 shadow-sm transition-all hover:border-blue-500 hover:shadow-md"
           >
             <div className="mb-4 inline-flex rounded-lg bg-blue-50 p-3 text-blue-600 group-hover:bg-blue-100 group-hover:text-blue-700">
-              <Image size={32} />
+              <ImageIcon size={32} />
             </div>
             <h2 className="mb-2 text-xl font-semibold text-gray-900">썸네일 제작</h2>
             <p className="text-gray-600">
@@ -92,7 +91,7 @@ export default function DashboardPage() {
             href="https://gemini.google.com/gem/1U00KqNWmka3i1TajKWeEbXiXe3sHrmm3?usp=sharing"
             target="_blank"
             rel="noopener noreferrer"
-            className="group block rounded-2xl border border-gray-200 bg-white p-8 shadow-sm transition-all hover:border-blue-500 hover:shadow-md"
+            className="hidden group rounded-2xl border border-gray-200 bg-white p-8 shadow-sm transition-all hover:border-blue-500 hover:shadow-md"
           >
             <div className="mb-4 inline-flex rounded-lg bg-blue-50 p-3 text-blue-600 group-hover:bg-blue-100 group-hover:text-blue-700">
               <MessageSquare size={32} />
@@ -119,7 +118,7 @@ export default function DashboardPage() {
           {isAdmin && (
             <Link
               href="/admin"
-              className="group block rounded-2xl border border-gray-200 bg-white p-8 shadow-sm transition-all hover:border-blue-500 hover:shadow-md"
+              className="hidden group rounded-2xl border border-gray-200 bg-white p-8 shadow-sm transition-all hover:border-blue-500 hover:shadow-md"
             >
               <div className="mb-4 inline-flex rounded-lg bg-blue-50 p-3 text-blue-600 group-hover:bg-blue-100 group-hover:text-blue-700">
                 <Settings size={32} />

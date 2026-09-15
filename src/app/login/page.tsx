@@ -23,9 +23,10 @@ export default function LoginPage() {
 
     try {
       const supabase = createClient();
-      const origin =
-        process.env.NEXT_PUBLIC_APP_ORIGIN?.replace(/\/$/, "") ??
-        window.location.origin;
+      const configuredOrigin = process.env.NEXT_PUBLIC_APP_ORIGIN?.trim();
+      const origin = configuredOrigin
+        ? configuredOrigin.replace(/\/$/, "")
+        : window.location.origin;
       const redirectTo = `${origin}/auth/callback?next=/dashboard`;
 
       await supabase.auth.signInWithOAuth({

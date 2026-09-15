@@ -3,10 +3,10 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "lint": "eslint"
+    "dev": "node scripts/run-package-command.mjs dev",
+    "build": "node scripts/run-package-command.mjs build",
+    "start": "node scripts/run-package-command.mjs start",
+    "lint": "node scripts/run-package-command.mjs lint"
   },
   "dependencies": {
     "@ai-sdk/google": "^3.0.53",
