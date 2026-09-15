@@ -4,6 +4,11 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useAuth } from "@/components/providers/AuthProvider";
+import type { AppProfile } from "@/lib/auth";
+
+function hasSite2Access(profile: AppProfile | null) {
+  return profile?.app_access === "site2" || profile?.app_access === "both";
+}
 
 export default function LoginPage() {
   const { status, profile } = useAuth();
@@ -15,8 +20,13 @@ export default function LoginPage() {
       return;
     }
 
-    router.push(profile?.status === "APPROVED" ? "/dashboard" : "/pending");
-  }, [profile?.status, router, status]);
+    if (profile?.status !== "APPROVED") {
+      router.push("/pending");
+      return;
+    }
+
+    router.push(hasSite2Access(profile) ? "/dashboard" : "/access-denied");
+  }, [profile, profile?.status, router, status]);
 
   const handleGoogleLogin = async () => {
     setIsSubmitting(true);

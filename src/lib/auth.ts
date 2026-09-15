@@ -64,6 +64,10 @@ function shouldNormalizeSite2Profile(profile: AppProfile, userCreatedAt?: string
   );
 }
 
+export function hasSite2Access(profile: AppProfile | null) {
+  return profile?.app_access === "site2" || profile?.app_access === "both";
+}
+
 export async function getAuthenticatedContext() {
   const supabase = await createServerSupabaseClient();
 
@@ -121,6 +125,6 @@ export async function getAuthenticatedContext() {
   return {
     supabase,
     user,
-    profile: profile ?? null,
+    profile: hasSite2Access(profile ?? null) ? profile : null,
   };
 }

@@ -3,12 +3,18 @@
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { useAuth } from "./AuthProvider";
+import type { AppProfile } from "@/lib/auth";
 
 const PUBLIC_PATHS = ["/login", "/auth/callback"];
 const APPROVAL_EXEMPT_PATHS = ["/pending"];
+const ACCESS_DENIED_PATHS = ["/access-denied"];
 const isDevAuthBypass =
   process.env.NODE_ENV === "development" &&
   process.env.NEXT_PUBLIC_DEV_AUTH_BYPASS === "true";
+
+function hasSite2Access(profile: AppProfile | null) {
+  return profile?.app_access === "site2" || profile?.app_access === "both";
+}
 
 export function AuthGuard({ children }: { children: React.ReactNode }) {
   const { status, profile } = useAuth();
@@ -29,6 +35,9 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
     const isApprovalExempt = APPROVAL_EXEMPT_PATHS.some((path) =>
       pathname.startsWith(path),
     );
+    const isAccessDeniedPath = ACCESS_DENIED_PATHS.some((path) =>
+      pathname.startsWith(path),
+    );
 
     if (status === "unauthenticated") {
       if (!isPublicPath && !isApiRoute) {
@@ -37,17 +46,28 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
       return;
     }
 
-    if (profile?.status === "APPROVED") {
-      if (pathname === "/login" || pathname === "/pending") {
-        router.push("/dashboard");
+    if (profile?.status !== "APPROVED") {
+      if (!isApprovalExempt && !isApiRoute) {
+        router.push("/pending");
       }
       return;
     }
 
-    if (!isApprovalExempt && !isApiRoute) {
-      router.push("/pending");
+    if (!hasSite2Access(profile)) {
+      if (!isAccessDeniedPath && !isApiRoute) {
+        router.push("/access-denied");
+      }
+      return;
     }
-  }, [pathname, profile?.status, router, status]);
+
+    if (
+      pathname === "/login" ||
+      pathname === "/pending" ||
+      pathname === "/access-denied"
+    ) {
+      router.push("/dashboard");
+    }
+  }, [pathname, profile, profile?.status, router, status]);
 
   if (isDevAuthBypass) {
     return <>{children}</>;
@@ -63,6 +83,12 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
 
   if (status === "unauthenticated" && pathname !== "/login") {
     return null;
+  }
+
+  if (status === "authenticated" && !hasSite2Access(profile)) {
+    if (pathname !== "/access-denied") {
+      return null;
+    }
   }
 
   if (status === "authenticated" && profile?.status !== "APPROVED") {
