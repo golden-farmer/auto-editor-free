@@ -89,6 +89,8 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
     if (pathname !== "/pending") {
       return null;
     }
+
+    return <>{children}</>;
   }
 
   if (status === "authenticated" && !hasSite2Access(profile)) {
