@@ -6,6 +6,8 @@ import { useAuth } from "@/components/providers/AuthProvider";
 
 const PAGE_SIZE = 20;
 
+type PlanType = "free" | "paid";
+
 type AdminUser = {
   id: string;
   name: string | null;
@@ -13,6 +15,9 @@ type AdminUser = {
   created_at: string;
   status: "PENDING" | "APPROVED" | "REJECTED";
   role: "USER" | "ADMIN";
+  plan_type?: PlanType | null;
+  app_access?: "site1" | "site2" | "both" | null;
+  upgraded_at?: string | null;
 };
 
 export default function AdminPage() {
@@ -22,6 +27,7 @@ export default function AdminPage() {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
+  const [activePlanTab, setActivePlanTab] = useState<PlanType>("paid");
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -68,20 +74,26 @@ export default function AdminPage() {
 
   const filteredUsers = useMemo(() => {
     const query = searchQuery.trim().toLowerCase();
+    const usersByPlan = users.filter((user) => (user.plan_type ?? "paid") === activePlanTab);
 
     if (!query) {
-      return users;
+      return usersByPlan;
     }
 
-    return users.filter((user) =>
+    return usersByPlan.filter((user) =>
       [
         user.name ?? "",
         user.email,
         user.status,
         user.role,
+        user.plan_type ?? "paid",
+        user.app_access ?? "site1",
       ].some((value) => value.toLowerCase().includes(query)),
     );
-  }, [searchQuery, users]);
+  }, [activePlanTab, searchQuery, users]);
+
+  const freeUserCount = users.filter((user) => (user.plan_type ?? "paid") === "free").length;
+  const paidUserCount = users.filter((user) => (user.plan_type ?? "paid") === "paid").length;
 
   const totalPages = Math.max(1, Math.ceil(filteredUsers.length / PAGE_SIZE));
   const paginatedUsers = filteredUsers.slice(
@@ -91,7 +103,7 @@ export default function AdminPage() {
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchQuery]);
+  }, [activePlanTab, searchQuery]);
 
   useEffect(() => {
     setCurrentPage((page) => Math.min(page, totalPages));
@@ -105,6 +117,28 @@ export default function AdminPage() {
     <div className="min-h-screen bg-gray-50 p-8">
       <div className="mx-auto max-w-6xl rounded-lg bg-white p-6 shadow">
         <h1 className="mb-6 text-2xl font-bold text-[#000]">사용자 관리</h1>
+        <div className="mb-4 flex gap-2">
+          <button
+            type="button"
+            onClick={() => setActivePlanTab("paid")}
+            className={`rounded px-4 py-2 text-sm font-medium transition ${activePlanTab === "paid"
+              ? "bg-blue-600 text-white"
+              : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+              }`}
+          >
+            유료 사용자 ({paidUserCount})
+          </button>
+          <button
+            type="button"
+            onClick={() => setActivePlanTab("free")}
+            className={`rounded px-4 py-2 text-sm font-medium transition ${activePlanTab === "free"
+              ? "bg-blue-600 text-white"
+              : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+              }`}
+          >
+            무료 사이트 사용자 ({freeUserCount})
+          </button>
+        </div>
         <div className="mb-4">
           <input
             type="search"
@@ -115,12 +149,13 @@ export default function AdminPage() {
           />
         </div>
         <div className="overflow-x-auto">
-          <table className="min-w-[1120px] whitespace-nowrap text-left text-sm">
+          <table className="min-w-[1200px] whitespace-nowrap text-left text-sm">
             <thead className="border-b-2 border-gray-200 bg-gray-50 tracking-wider">
               <tr>
                 <th className="px-6 py-4 font-semibold text-gray-600">이름</th>
                 <th className="px-6 py-4 font-semibold text-gray-600">이메일</th>
                 <th className="px-6 py-4 font-semibold text-gray-600">가입일</th>
+                <th className="px-6 py-4 font-semibold text-gray-600">구분</th>
                 <th className="px-6 py-4 font-semibold text-gray-600">상태</th>
                 <th className="px-6 py-4 font-semibold text-gray-600">권한</th>
                 <th className="px-6 py-4 font-semibold text-gray-600">관리</th>
@@ -133,6 +168,16 @@ export default function AdminPage() {
                   <td className="px-6 py-4">{user.email}</td>
                   <td className="px-6 py-4">
                     {new Date(user.created_at).toLocaleDateString()}
+                  </td>
+                  <td className="px-6 py-4">
+                    <span
+                      className={`rounded-full px-3 py-1 text-xs font-medium ${(user.plan_type ?? "paid") === "paid"
+                        ? "bg-purple-100 text-purple-800"
+                        : "bg-orange-100 text-orange-800"
+                        }`}
+                    >
+                      {(user.plan_type ?? "paid") === "paid" ? "유료" : "무료"}
+                    </span>
                   </td>
                   <td className="px-6 py-4">
                     <span
@@ -190,7 +235,7 @@ export default function AdminPage() {
               ))}
               {filteredUsers.length === 0 && (
                 <tr>
-                  <td colSpan={6} className="px-6 py-8 text-center text-gray-500">
+                  <td colSpan={7} className="px-6 py-8 text-center text-gray-500">
                     {searchQuery ? "검색 결과가 없습니다." : "등록된 사용자가 없습니다."}
                   </td>
                 </tr>

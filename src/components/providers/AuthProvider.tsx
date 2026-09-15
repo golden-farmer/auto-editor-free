@@ -35,6 +35,9 @@ const devProfile: AppProfile = {
   gemini_api_key: null,
   role: "ADMIN",
   status: "APPROVED",
+  plan_type: "paid",
+  app_access: "both",
+  upgraded_at: null,
   created_at: new Date(0).toISOString(),
   updated_at: new Date(0).toISOString(),
 };
@@ -51,15 +54,15 @@ async function upsertAndLoadProfile(user: User) {
   if (!profile && user.email) {
     const { data: createdProfile } = await supabase
       .from("users")
-      .upsert(
-        {
-          id: user.id,
-          email: user.email,
-          name: user.user_metadata?.name ?? null,
-          image: user.user_metadata?.avatar_url ?? null,
-        },
-        { onConflict: "id" },
-      )
+      .insert({
+        id: user.id,
+        email: user.email,
+        name: user.user_metadata?.name ?? null,
+        image: user.user_metadata?.avatar_url ?? null,
+        plan_type: "free",
+        app_access: "site2",
+        upgraded_at: null,
+      })
       .select("*")
       .single<AppProfile>();
 

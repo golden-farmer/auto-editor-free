@@ -5,8 +5,6 @@ import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useAuth } from "@/components/providers/AuthProvider";
 
-const PRODUCTION_APP_ORIGIN = "https://auto-edior.vercel.app";
-
 export default function LoginPage() {
   const { status, profile } = useAuth();
   const router = useRouter();
@@ -26,10 +24,8 @@ export default function LoginPage() {
     try {
       const supabase = createClient();
       const origin =
-        window.location.hostname === "localhost" ||
-        window.location.hostname === "127.0.0.1"
-          ? window.location.origin
-          : PRODUCTION_APP_ORIGIN;
+        process.env.NEXT_PUBLIC_APP_ORIGIN?.replace(/\/$/, "") ??
+        window.location.origin;
       const redirectTo = `${origin}/auth/callback?next=/dashboard`;
 
       await supabase.auth.signInWithOAuth({
