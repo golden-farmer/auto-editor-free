@@ -42,6 +42,30 @@ const devProfile: AppProfile = {
   updated_at: new Date(0).toISOString(),
 };
 
+const NEW_AUTH_USER_WINDOW_MS = 10 * 60 * 1000;
+
+function isNewAuthUser(createdAt?: string) {
+  if (!createdAt) {
+    return false;
+  }
+
+  const createdAtTime = new Date(createdAt).getTime();
+
+  if (Number.isNaN(createdAtTime)) {
+    return false;
+  }
+
+  return Date.now() - createdAtTime < NEW_AUTH_USER_WINDOW_MS;
+}
+
+function shouldNormalizeSite2Profile(profile: AppProfile, userCreatedAt?: string) {
+  return (
+    isNewAuthUser(userCreatedAt) &&
+    profile.plan_type === "paid" &&
+    profile.app_access === "site1"
+  );
+}
+
 async function upsertAndLoadProfile(user: User) {
   const supabase = createClient();
 
@@ -67,6 +91,21 @@ async function upsertAndLoadProfile(user: User) {
       .single<AppProfile>();
 
     profile = createdProfile;
+  }
+
+  if (profile && shouldNormalizeSite2Profile(profile, user.created_at)) {
+    const { data: normalizedProfile } = await supabase
+      .from("users")
+      .update({
+        plan_type: "free",
+        app_access: "site2",
+        upgraded_at: null,
+      })
+      .eq("id", user.id)
+      .select("*")
+      .single<AppProfile>();
+
+    profile = normalizedProfile ?? profile;
   }
 
   return profile ?? null;
