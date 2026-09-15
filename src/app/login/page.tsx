@@ -23,11 +23,7 @@ export default function LoginPage() {
 
     try {
       const supabase = createClient();
-      const configuredOrigin = process.env.NEXT_PUBLIC_APP_ORIGIN?.trim();
-      const origin = configuredOrigin
-        ? configuredOrigin.replace(/\/$/, "")
-        : window.location.origin;
-      const redirectTo = `${origin}/auth/callback?next=/dashboard`;
+      const redirectTo = `${window.location.origin}/auth/callback?next=/dashboard`;
 
       await supabase.auth.signInWithOAuth({
         provider: "google",

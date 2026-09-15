@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "황금농부의 딸깍",
+  title: "황금농부 딸깍 체험판",
   description: "사내/관리자용 상세페이지 제작 자동화",
 };
 

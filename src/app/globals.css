@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@source "../**/*.{ts,tsx}";
 
 /* Korean Web Fonts loaded via link tags in layout.tsx */
 
