@@ -42,6 +42,58 @@ const devProfile: AppProfile = {
   updated_at: new Date(0).toISOString(),
 };
 
+const NEW_AUTH_USER_WINDOW_MS = 2 * 60 * 1000;
+const TRIGGER_PROFILE_WINDOW_MS = 30 * 1000;
+
+function parseTime(value?: string | null) {
+  if (!value) {
+    return null;
+  }
+
+  const time = new Date(value).getTime();
+
+  return Number.isNaN(time) ? null : time;
+}
+
+function isNewAuthUser(createdAt?: string) {
+  const createdAtTime = parseTime(createdAt);
+
+  return (
+    createdAtTime !== null &&
+    Date.now() - createdAtTime < NEW_AUTH_USER_WINDOW_MS
+  );
+}
+
+function areTimestampsClose(
+  firstValue?: string | null,
+  secondValue?: string | null,
+) {
+  const firstTime = parseTime(firstValue);
+  const secondTime = parseTime(secondValue);
+
+  return (
+    firstTime !== null &&
+    secondTime !== null &&
+    Math.abs(firstTime - secondTime) < TRIGGER_PROFILE_WINDOW_MS
+  );
+}
+
+function shouldNormalizeSite2Profile(
+  profile: AppProfile,
+  userCreatedAt?: string,
+) {
+  return (
+    isNewAuthUser(userCreatedAt) &&
+    (profile.status === "PENDING" || profile.status === "APPROVED") &&
+    profile.role !== "ADMIN" &&
+    profile.upgraded_at === null &&
+    profile.plan_type === "paid" &&
+    profile.app_access === "site1" &&
+    areTimestampsClose(profile.created_at, userCreatedAt) &&
+    areTimestampsClose(profile.updated_at, profile.created_at)
+  );
+}
+
 async function upsertAndLoadProfile(user: User) {
   const supabase = createClient();
 
@@ -67,6 +119,26 @@ async function upsertAndLoadProfile(user: User) {
       .single<AppProfile>();
 
     profile = createdProfile;
+  }
+
+  if (profile && shouldNormalizeSite2Profile(profile, user.created_at)) {
+    const { data: normalizedProfile } = await supabase
+      .from("users")
+      .update({
+        plan_type: "free",
+        app_access: "site2",
+        upgraded_at: null,
+      })
+      .eq("id", user.id)
+      .in("status", ["PENDING", "APPROVED"])
+      .neq("role", "ADMIN")
+      .eq("plan_type", "paid")
+      .eq("app_access", "site1")
+      .is("upgraded_at", null)
+      .select("*")
+      .maybeSingle<AppProfile>();
+
+    profile = normalizedProfile ?? profile;
   }
 
   return profile ?? null;
