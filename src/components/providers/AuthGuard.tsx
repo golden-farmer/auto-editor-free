@@ -85,14 +85,14 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
     return null;
   }
 
-  if (status === "authenticated" && !hasSite2Access(profile)) {
-    if (pathname !== "/access-denied") {
+  if (status === "authenticated" && profile?.status !== "APPROVED") {
+    if (pathname !== "/pending") {
       return null;
     }
   }
 
-  if (status === "authenticated" && profile?.status !== "APPROVED") {
-    if (pathname !== "/pending") {
+  if (status === "authenticated" && !hasSite2Access(profile)) {
+    if (pathname !== "/access-denied") {
       return null;
     }
   }
