@@ -6,7 +6,7 @@ import { Plus, Trash2, RotateCcw, Save, Loader2, X, AlertCircle, Info, Edit2 } f
 type Category = "과일" | "구근류";
 
 const COMMISSIONS: Record<Category, number> = {
-  "과일": 11.22,
+  "과일": 11.66,
   "구근류": 8.36,
 };
 
