@@ -46,7 +46,7 @@ export default function DashboardPage() {
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           <Link
             // 잼스 href="/thumbnail-editor"
-            href="https://gemini.google.com/gem/1IWR0Irn4jzmH3COBgncT93beU863blPb?usp=sharing"
+            href="https://gemini.google.com/customize/skills/d/16H-2rCyjmcw2g89oAVvK7005w_l_PPEn?usp=sharing"
             target="_blank"
             rel="noopener noreferrer"
             className="hidden group rounded-2xl border border-gray-200 bg-white p-8 shadow-sm transition-all hover:border-blue-500 hover:shadow-md"
@@ -88,7 +88,7 @@ export default function DashboardPage() {
 
           <Link
             // /cs-responder
-            href="https://gemini.google.com/gem/1U00KqNWmka3i1TajKWeEbXiXe3sHrmm3?usp=sharing"
+            href="https://gemini.google.com/customize/skills/d/1SB08wFy_xtHC58upOuOlYKAKju4MOAtI?usp=sharing"
             target="_blank"
             rel="noopener noreferrer"
             className="hidden group rounded-2xl border border-gray-200 bg-white p-8 shadow-sm transition-all hover:border-blue-500 hover:shadow-md"
